@@ -10,7 +10,6 @@ const InputField = ({ placeholder, onChange, id, style, input }) => {
         aria-describedby="inputGroup-sizing-default"
         placeholder={!input ? placeholder : input}
         id={id}
-        required
       />
     </div>
   )

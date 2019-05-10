@@ -5,28 +5,41 @@ import InputField from '../components/InputField';
 import TextArea from '../components/TextArea';
 import Checkbox from '../components/Checkbox';
 import Button from '../components/Button';
-import Message from '../components/Message'
+import Message from '../components/Message';
+import FormErrors from '../components/FormErrors'
 
 const HOST = 'http://localhost:49567'
-const responses = [
-  {code: 201, message: "Your assistance request has been successfully submitted.", type: 'success'},
-  {code: 401, message: "Sorry, you are not authorized to make this request.", type: 'info'},
-  {code: 500, message: "Oh no! Something completely unexpected happened!", type: 'warning'},
-  {code: 503, message: "We're down!!!!!! Come back later.....(please)", type: 'danger'}
-]
 
 export default class Form extends React.Component {
 
   state = {
     serviceTypes: [],
-    firstName: '',
-    lastName: '',
-    emailAddress: '',
-    serviceSelected: null,
-    description: '',
-    termsAccepted: false,
+    submittedRequests: [],
+    request: {
+      firstName: '',
+      lastName: '',
+      emailAddress: '',
+      serviceSelected: '',
+      description: '',
+      termsAccepted: false,
+    },
+    formErrors: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      description: '',
+      service: '',
+      terms: false
+    },
+    firstNameValid: false,
+    lastNameValid: false,
+    emailValid: false,
+    descriptionValid: false,
+    serviceValid: false,
+    termsValid: false,
+    formValid: false,
     hidden: false,
-    message: '',
+    message: ''
   }
 
   // update state with service objects from docker api
@@ -38,21 +51,30 @@ export default class Form extends React.Component {
 
   // update First Name, Last Name, Email Address state from input field
   handleInputChange = (e) => {
+    const name = e.target.id
+    const value = e.target.value
     e.preventDefault()
-    this.setState({ [e.target.id]: e.target.value})
+    this.setState({ request: {...this.state.request, [name]: value }},
+      () => this.validateField(name, value)
+    )
   }
 
   // update serviceSelected from dropdown menu
   handleServiceSelect = (e) => {
-    e.preventDefault()
-    this.setState({ serviceSelected: e.target.value })
+    e.persist()
+    this.setState({ request: {...this.state.request, serviceSelected: e.target.value }},
+      () => this.validateField('serviceSelected', e.target.value)
+    )
   }
 
   // toggle agreement of terms
   handleTermsClick = () => {
-    this.setState({ termsAccepted: !this.state.termsAccepted })
+    this.setState({ request: {...this.state.request, termsAccepted: !this.state.request.termsAccepted }},
+      () => this.validateField('termsAccepted', this.state.request.termsAccepted)
+    )
   }
 
+  // handles POST request to API
   handleFormSubmit = (e) => {
     e.preventDefault()
     fetch(`${HOST}/api/assistance-requests`, {
@@ -62,29 +84,94 @@ export default class Form extends React.Component {
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        "assistance_request": {
-          "contact": {
-            "first_name": this.state.firstName,
-            "last_name": this.state.lastName,
-            "email": this.state.emailAddress
+        assistance_request: {
+          contact: {
+            first_name: this.state.request.firstName,
+            last_name: this.state.request.lastName,
+            email: this.state.request.emailAddress
           },
-          "service_type": this.state.serviceSelected,
-          "description": this.state.description
+          service_type: this.state.request.serviceSelected,
+          description: this.state.request.description
         }
       })
     })
-    .then( resp => resp.json())
-    .then( resp => {
-      const message = responses[Math.floor(Math.random() * responses.length)]
+    .then( response => response.json())
+    .then( response => {
+      console.log(this.state.request)
       this.setState({
-        message,
-        hidden: !this.state.hidden
-      })
+        message: response,
+        hidden: !this.state.hidden,
+      }, () => console.log('submitted requests', this.state.submittedRequests))
+      if (this.state.message === "Your assistance request has been successfully submitted.") {
+        this.setState({
+          submittedRequests: [...this.state.submittedRequests, this.state.request]
+        })
+      }
+      console.log('after', this.state.submittedRequests)
     })
   }
 
+  //
+  validateField = (fieldName, value) => {
+    let fieldValidationErrors = this.state.formErrors;
+    let firstNameValid = this.state.firstNameValid;
+    let lastNameValid = this.state.lastNameValid;
+    let emailValid = this.state.emailValid;
+    let descriptionValid = this.state.descriptionValid
+    let serviceValid = this.state.serviceValid
+    let termsValid = this.state.termsValid
+
+    switch(fieldName) {
+      case 'firstName':
+        firstNameValid = value.length > 0
+        fieldValidationErrors.firstName = firstNameValid ? '' : 'Please enter your first name.';
+        break;
+      case 'lastName':
+        lastNameValid = value.length > 0
+        fieldValidationErrors.lastName = lastNameValid ? '' : 'Please enter your last name.';
+        break;
+      case 'emailAddress':
+        emailValid = value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i);
+        fieldValidationErrors.email = emailValid ? '' : 'Please enter a valid email address.';
+        break;
+      case 'description':
+        descriptionValid = value.length > 0
+        fieldValidationErrors.description = descriptionValid ? '' : 'Please provide a description of your request.'
+        break;
+      case 'serviceSelected':
+        serviceValid = value !== 'Select Service Type';
+        fieldValidationErrors.service = serviceValid ? '' : 'Please select a service type.';
+        break;
+      case 'termsAccepted':
+        termsValid = value === true
+        fieldValidationErrors.terms = termsValid ? '' : 'Please accept the terms of service.';
+        break;
+    }
+    this.setState({
+      formErrors: fieldValidationErrors,
+      firstNameValid,
+      lastNameValid,
+      emailValid,
+      descriptionValid,
+      serviceValid,
+      termsValid
+    }, this.validateForm)
+  }
+
+  validateForm = () => {
+    this.setState({
+      formValid: this.state.firstNameValid &&
+      this.state.lastNameValid &&
+      this.state.emailValid &&
+      this.state.descriptionValid &&
+      this.state.serviceValid &&
+      this.state.termsValid
+    })
+  }
+
+
   // handling button click on error message
-  handleReturn = () => {
+  handleBackButton = () => {
     this.setState({ hidden: !this.state.hidden })
   }
 
@@ -96,6 +183,7 @@ export default class Form extends React.Component {
       <div className='container' style={{display: 'table', width: '60vw'}} >
         <div hidden={this.state.hidden}>
           <Header content="New Assistance Request"/>
+          <FormErrors formErrors={this.state.formErrors}/>
           <InputField placeholder='First Name' id='firstName' input={this.state.firstName} onChange={this.handleInputChange} style={style}/>
           <InputField placeholder='Last Name' id='lastName' input={this.state.lastName} onChange={this.handleInputChange} style={style}/>
           <InputField placeholder='Email Address' id='emailAddress' input={this.state.emailAddress} onChange={this.handleInputChange} style={style}/>
@@ -108,10 +196,10 @@ export default class Form extends React.Component {
             style={style}
           />
           <Checkbox placeholder={terms} onClick={this.handleTermsClick}/>
-          <Button label='Get Assitance' onClick={this.handleFormSubmit}/>
+          <Button label='Get Assitance' onClick={this.handleFormSubmit} disabled={!this.state.formValid}/>
         </div>
         <div style={{marginTop: '10vh'}}>
-          <Message hidden={!this.state.hidden} message={this.state.message} handleReturn={this.handleReturn}/>
+          <Message hidden={!this.state.hidden} message={this.state.message} handleReturn={this.handleBackButton}/>
         </div>
       </div>
     )
