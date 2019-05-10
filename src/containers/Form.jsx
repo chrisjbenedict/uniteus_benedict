@@ -11,11 +11,11 @@ export default class Form extends React.Component {
   state = {
     serviceTypes: [],
     selected: false,
-    firstName: 'First Name',
-    lastName: 'Last Name',
-    emailAddress: 'Email Address',
+    firstName: '',
+    lastName: '',
+    emailAddress: '',
     serviceSelected: null,
-    description: 'Description',
+    description: '',
     termsAccepted: false
   }
 
@@ -45,7 +45,8 @@ export default class Form extends React.Component {
     this.setState({ termsAccepted: !this.state.termsAccepted })
   }
 
-  handleFormSubmit = () => {
+  handleFormSubmit = (e) => {
+    e.preventDefault()
     console.log('submit')
   }
 
@@ -56,10 +57,10 @@ export default class Form extends React.Component {
     return (
       <div className='container' style={{display: 'table', width: '60vw'}}>
         <Header content="New Assistance Request"/>
-        <InputField placeholder={this.state.firstName} id='firstName' onChange={this.handleInputChange} style={style}/>
-        <InputField placeholder={this.state.lastName} id='lastName' onChange={this.handleInputChange} style={style}/>
-        <InputField placeholder={this.state.emailAddress} id='emailAddress' onChange={this.handleInputChange} style={style}/>
-        <TextArea placeholder={this.state.description} id='description' onChange={this.handleInputChange} style={style}/>
+        <InputField placeholder='First Name' id='firstName' input={this.state.firstName} onChange={this.handleInputChange} style={style}/>
+        <InputField placeholder='Last Name' id='lastName' input={this.state.lastName} onChange={this.handleInputChange} style={style}/>
+        <InputField placeholder='Email Address' id='emailAddress' input={this.state.emailAddress} onChange={this.handleInputChange} style={style}/>
+        <TextArea placeholder='Description' id='description' description={this.state.description} onChange={this.handleInputChange} style={style}/>
         <Dropdown
           placeholder='Select Service Type'
           options={this.state.serviceTypes}

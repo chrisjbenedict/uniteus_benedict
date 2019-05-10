@@ -1,6 +1,6 @@
 import React from 'react'
 
-const InputField = ({ placeholder, onChange, id, style }) => {
+const InputField = ({ placeholder, onChange, id, style, input }) => {
   return(
     <div onChange={onChange} className="input-group mb-3" style={style}>
       <input
@@ -8,8 +8,9 @@ const InputField = ({ placeholder, onChange, id, style }) => {
         className="form-control"
         aria-label="Default"
         aria-describedby="inputGroup-sizing-default"
-        placeholder={placeholder}
+        placeholder={!input ? placeholder : input}
         id={id}
+        required
       />
     </div>
   )
