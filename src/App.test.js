@@ -4,6 +4,7 @@ import App from './App';
 import Form from './containers/Form'
 import Header from './components/Header'
 import Dropdown from './components/Dropdown'
+import TextArea from './components/TextArea'
 import { configure, shallow, mount, render } from 'enzyme';
 import 'jest-enzyme'
 import Adapter from 'enzyme-adapter-react-16';
@@ -49,10 +50,18 @@ describe('<Header />', () => {
   })
 })
 
+describe('<TextArea />', () => {
+  it('receives props', () => {
+    const wrapper = mount(<Form />);
+    expect(wrapper.find(TextArea)).toHaveProp('onChange')
+  })
+})
+
 describe('<Dropdown />', () => {
   it('receives props', () => {
     const wrapper = mount(<Form />);
-    console.log(wrapper)
     expect(wrapper.find(Dropdown)).toHaveProp('options')
+    expect(wrapper.find(Dropdown)).toHaveProp('selected')
+    expect(wrapper.find(Dropdown)).toHaveProp('onSelect')
   })
 })

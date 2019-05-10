@@ -1,8 +1,8 @@
 import React from 'react';
 
-const Dropdown = ({ options, selected, onSelect, placeholder }) => {
+const Dropdown = ({ options, onSelect, placeholder, style }) => {
   return (
-    <select style={{display: 'table-cell', width: '90vw'}} onChange={onSelect}>
+    <select style={style} onChange={onSelect}>
       <option defaultValue>{placeholder}</option>
       {options.map(option => {
         return (

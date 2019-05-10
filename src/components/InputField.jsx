@@ -1,14 +1,14 @@
 import React from 'react'
 
-const InputField = ({ text, onChange, id }) => {
+const InputField = ({ placeholder, onChange, id, style }) => {
   return(
-    <div onChange={onChange} className="input-group mb-3" style={{width: '90vw', margin: '3vh'}}>
+    <div onChange={onChange} className="input-group mb-3" style={style}>
       <input
         type="text"
         className="form-control"
         aria-label="Default"
         aria-describedby="inputGroup-sizing-default"
-        placeholder={text}
+        placeholder={placeholder}
         id={id}
       />
     </div>
