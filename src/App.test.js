@@ -33,6 +33,6 @@ describe('<Form />', () => {
   })
   it('hasState', () => {
     const wrapper = mount(<Form />);
-    expect(wrapper).toHaveState('foo')
+    expect(wrapper).toHaveState('serviceTypes')
   })
 })
