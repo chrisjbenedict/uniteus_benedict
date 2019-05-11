@@ -97,19 +97,31 @@ export default class Form extends React.Component {
     })
     .then( response => response.json())
     .then( response => {
-      if (response.message === "Your assistance request has been successfully submitted.") {
+      // if the request is unique
+      if (!this.state.successfulRequests.includes(this.state.request)) {
+        // if a response is successful, add it to the successfulRequests array
+        if (response.message === "Your assistance request has been successfully submitted.") {
+          this.setState({
+            successfulRequests: [...this.state.successfulRequests, this.state.request]
+          }, () => console.log('successful', this.state.successfulRequests))
+        }
+        // if the request is not successful, update error message
         this.setState({
-          successfulRequests: [...this.state.successfulRequests, this.state.request]
-        }, () => console.log('successful', this.state.successfulRequests))
+          message: response,
+          hidden: !this.state.hidden,
+        })
+      } else {
+        // if the request is not unique
+        response.message = "You have already made this request. Please make a new request."
+        this.setState({
+          message: response,
+          hidden: !this.state.hidden
+        })
       }
-      this.setState({
-        message: response,
-        hidden: !this.state.hidden,
-      })
     })
   }
 
-  //
+  // takes in a field name and it's value
   validateField = (fieldName, value) => {
     let fieldValidationErrors = this.state.formErrors;
     let firstNameValid = this.state.firstNameValid;
@@ -119,6 +131,7 @@ export default class Form extends React.Component {
     let serviceValid = this.state.serviceValid
     let termsValid = this.state.termsValid
 
+    // for each case, check validity requirements. If invalid (false), show message
     switch(fieldName) {
       case 'firstName':
         firstNameValid = value.length > 0
@@ -147,6 +160,7 @@ export default class Form extends React.Component {
       default:
         break;
     }
+    // update "valid" states and validate.
     this.setState({
       formErrors: fieldValidationErrors,
       firstNameValid,
@@ -157,7 +171,7 @@ export default class Form extends React.Component {
       termsValid
     }, this.validateForm)
   }
-
+  //  formValid = true if every field is true (valid)
   validateForm = () => {
     this.setState({
       formValid: this.state.firstNameValid &&
