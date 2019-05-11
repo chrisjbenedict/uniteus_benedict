@@ -14,7 +14,7 @@ export default class Form extends React.Component {
 
   state = {
     serviceTypes: [],
-    submittedRequests: [],
+    successfulRequests: [],
     request: {
       firstName: '',
       lastName: '',
@@ -49,7 +49,7 @@ export default class Form extends React.Component {
     .then( resp => { this.setState({ serviceTypes: resp.data }) })
   }
 
-  // update First Name, Last Name, Email Address state from input field
+  // update First Name, Last Name, Email Address state from input field and validate
   handleInputChange = (e) => {
     const name = e.target.id
     const value = e.target.value
@@ -59,7 +59,7 @@ export default class Form extends React.Component {
     )
   }
 
-  // update serviceSelected from dropdown menu
+  // update serviceSelected from dropdown menu and validate
   handleServiceSelect = (e) => {
     e.persist()
     this.setState({ request: {...this.state.request, serviceSelected: e.target.value }},
@@ -67,7 +67,7 @@ export default class Form extends React.Component {
     )
   }
 
-  // toggle agreement of terms
+  // toggle agreement of terms and validate
   handleTermsClick = () => {
     this.setState({ request: {...this.state.request, termsAccepted: !this.state.request.termsAccepted }},
       () => this.validateField('termsAccepted', this.state.request.termsAccepted)
@@ -97,17 +97,15 @@ export default class Form extends React.Component {
     })
     .then( response => response.json())
     .then( response => {
-      console.log(this.state.request)
+      if (response.message === "Your assistance request has been successfully submitted.") {
+        this.setState({
+          successfulRequests: [...this.state.successfulRequests, this.state.request]
+        }, () => console.log('successful', this.state.successfulRequests))
+      }
       this.setState({
         message: response,
         hidden: !this.state.hidden,
-      }, () => console.log('submitted requests', this.state.submittedRequests))
-      if (this.state.message === "Your assistance request has been successfully submitted.") {
-        this.setState({
-          submittedRequests: [...this.state.submittedRequests, this.state.request]
-        })
-      }
-      console.log('after', this.state.submittedRequests)
+      })
     })
   }
 
@@ -145,6 +143,8 @@ export default class Form extends React.Component {
       case 'termsAccepted':
         termsValid = value === true
         fieldValidationErrors.terms = termsValid ? '' : 'Please accept the terms of service.';
+        break;
+      default:
         break;
     }
     this.setState({
