@@ -1,12 +1,12 @@
 # Unite Us
 
-Unite Us is a React application for submitting an Assistance Request form.
+Unite Us is a React application for submitting a mock Assistance Request form.
 
 ## `Description`
 
-Unite Us makes a GET request to a mock API at port 49567/api/service-types, which stores the available services types for assistance requests.
+Unite Us makes a GET request to a mock API at port 49567/api/service-types, which stores the available service types for assistance requests.
 
-If all required sections of the form are complete and valid, a user is able to submit the request and a success or error message is returned, at random. A user cannot make the same request after a successful response is returned.
+If all required sections of the form are complete and valid, a user is able to submit the request and a success or error message is returned, at random. A user cannot make the same request after a successful response is returned. Requests are not persisted.
 
 ## `Installation`
 
@@ -32,13 +32,13 @@ Launches the test runner in the interactive watch mode.<br>
 
 ### `Built With`
 
-React - Javascript framework used
+React - Javascript framework used<br>
 Enzyme/Jest - Javascript testing utility
 
-### Authors
+### `Authors`
 
 Chris Benedict
 
-### Acknowledgements
+### `Acknowledgements`
 
 Thank you to Unite Us for the opportunity.
