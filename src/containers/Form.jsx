@@ -15,6 +15,8 @@ export default class Form extends React.Component {
   state = {
     serviceTypes: [],
     successfulRequests: [],
+    hidden: false,
+    message: '',
     request: {
       firstName: '',
       lastName: '',
@@ -31,15 +33,17 @@ export default class Form extends React.Component {
       service: '',
       terms: false
     },
+    firstNameRequired: false,
+    lastNameRequired: false,
+    emailRequired: false,
+    serviceRequired: false,
     firstNameValid: false,
     lastNameValid: false,
     emailValid: false,
     descriptionValid: false,
     serviceValid: false,
     termsValid: false,
-    formValid: false,
-    hidden: false,
-    message: ''
+    formValid: false
   }
 
   // update state with service objects from docker api
@@ -77,48 +81,48 @@ export default class Form extends React.Component {
   // handles POST request to API
   handleFormSubmit = (e) => {
     e.preventDefault()
-    fetch(`${HOST}/api/assistance-requests`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        assistance_request: {
-          contact: {
-            first_name: this.state.request.firstName,
-            last_name: this.state.request.lastName,
-            email: this.state.request.emailAddress
-          },
-          service_type: this.state.request.serviceSelected,
-          description: this.state.request.description
-        }
+    // if the request is unique
+    if (!this.state.successfulRequests.includes(this.state.request)) {
+      fetch(`${HOST}/api/assistance-requests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          assistance_request: {
+            contact: {
+              first_name: this.state.request.firstName,
+              last_name: this.state.request.lastName,
+              email: this.state.request.emailAddress
+            },
+            service_type: this.state.request.serviceSelected,
+            description: this.state.request.description
+          }
+        })
       })
-    })
-    .then( response => response.json())
-    .then( response => {
-      // if the request is unique
-      if (!this.state.successfulRequests.includes(this.state.request)) {
-        // if a response is successful, add it to the successfulRequests array
-        if (response.message === "Your assistance request has been successfully submitted.") {
+      .then( response => response.json())
+      .then( response => {
+          // if a response is successful, add it to the successfulRequests array
+          if (response.message === "Your assistance request has been successfully submitted.") {
+            this.setState({
+              successfulRequests: [...this.state.successfulRequests, this.state.request]
+            }, () => console.log('successful', this.state.successfulRequests))
+          }
+          // if the request is not successful, update error message
           this.setState({
-            successfulRequests: [...this.state.successfulRequests, this.state.request]
-          }, () => console.log('successful', this.state.successfulRequests))
-        }
-        // if the request is not successful, update error message
-        this.setState({
-          message: response,
-          hidden: !this.state.hidden,
+            message: response,
+            hidden: !this.state.hidden,
+          })
         })
       } else {
         // if the request is not unique
-        response.message = "You have already made this request. Please make a new request."
+        const response = { message: "You have already made this request. Please make a new request." }
         this.setState({
           message: response,
           hidden: !this.state.hidden
         })
       }
-    })
   }
 
   // takes in a field name and it's value
@@ -127,23 +131,32 @@ export default class Form extends React.Component {
     let firstNameValid = this.state.firstNameValid;
     let lastNameValid = this.state.lastNameValid;
     let emailValid = this.state.emailValid;
-    let descriptionValid = this.state.descriptionValid
-    let serviceValid = this.state.serviceValid
-    let termsValid = this.state.termsValid
+    let descriptionValid = this.state.descriptionValid;
+    let serviceValid = this.state.serviceValid;
+    let termsValid = this.state.termsValid;
+
+    let firstNameRequired = this.state.firstNameRequired;
+    let lastNameRequired = this.state.lastNameRequired;
+    let emailRequired = this.state.emailRequired
+    let serviceRequired = this.state.serviceRequired
 
     // for each case, check validity requirements. If invalid (false), show message
+    // option to show message or 'required'
     switch(fieldName) {
       case 'firstName':
-        firstNameValid = value.length > 0
-        fieldValidationErrors.firstName = firstNameValid ? '' : 'Please enter your first name.';
+        firstNameValid = value.length > 0;
+        fieldValidationErrors.firstName = firstNameValid ? firstNameRequired = false : firstNameRequired = true;
+        // fieldValidationErrors.firstName = firstNameValid ? '' : 'Please enter your first name.';
         break;
       case 'lastName':
         lastNameValid = value.length > 0
-        fieldValidationErrors.lastName = lastNameValid ? '' : 'Please enter your last name.';
+        fieldValidationErrors.lastName = lastNameValid ? lastNameRequired = false : lastNameRequired = true;
+        // fieldValidationErrors.lastName = lastNameValid ? '' : 'Please enter your last name.';
         break;
       case 'emailAddress':
         emailValid = value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i);
-        fieldValidationErrors.email = emailValid ? '' : 'Please enter a valid email address.';
+        fieldValidationErrors.email = emailValid ? emailRequired = false : emailRequired = true;
+        // fieldValidationErrors.email = emailValid ? '' : 'Please enter a valid email address.';
         break;
       case 'description':
         descriptionValid = value.length > 0
@@ -151,7 +164,8 @@ export default class Form extends React.Component {
         break;
       case 'serviceSelected':
         serviceValid = value !== 'Select Service Type';
-        fieldValidationErrors.service = serviceValid ? '' : 'Please select a service type.';
+        fieldValidationErrors.service = serviceValid ? serviceRequired = false : serviceRequired = true;
+        // fieldValidationErrors.service = serviceValid ? '' : 'Please select a service type.';
         break;
       case 'termsAccepted':
         termsValid = value === true
@@ -168,7 +182,11 @@ export default class Form extends React.Component {
       emailValid,
       descriptionValid,
       serviceValid,
-      termsValid
+      termsValid,
+      firstNameRequired,
+      lastNameRequired,
+      emailRequired,
+      serviceRequired
     }, this.validateForm)
   }
   //  formValid = true if every field is true (valid)
@@ -196,24 +214,67 @@ export default class Form extends React.Component {
     return (
       <div className='container' style={{display: 'table', width: '60vw'}} >
         <div hidden={this.state.hidden}>
-          <Header content="New Assistance Request"/>
-          <FormErrors formErrors={this.state.formErrors}/>
-          <InputField placeholder='First Name' id='firstName' input={this.state.firstName} onChange={this.handleInputChange} style={style}/>
-          <InputField placeholder='Last Name' id='lastName' input={this.state.lastName} onChange={this.handleInputChange} style={style}/>
-          <InputField placeholder='Email Address' id='emailAddress' input={this.state.emailAddress} onChange={this.handleInputChange} style={style}/>
-          <TextArea placeholder='Description' id='description' description={this.state.description} onChange={this.handleInputChange} style={style}/>
+          <Header
+            content="New Assistance Request"
+          />
+          <FormErrors
+            formErrors={this.state.formErrors}
+          />
+          <InputField
+            placeholder='First Name'
+            id='firstName'
+            input={this.state.firstName}
+            onChange={this.handleInputChange}
+            style={style}
+            hidden={!this.state.firstNameRequired}
+          />
+          <InputField
+            placeholder='Last Name'
+            id='lastName'
+            input={this.state.lastName}
+            onChange={this.handleInputChange}
+            style={style}
+            hidden={!this.state.lastNameRequired}
+          />
+          <InputField
+            placeholder='Email Address'
+            id='emailAddress'
+            input={this.state.emailAddress}
+            onChange={this.handleInputChange}
+            style={style}
+            hidden={!this.state.emailRequired}
+          />
           <Dropdown
             placeholder='Select Service Type'
             options={this.state.serviceTypes}
             selected={this.state.selected}
             onSelect={this.handleServiceSelect}
             style={style}
+            hidden={!this.state.serviceRequired}
           />
-          <Checkbox placeholder={terms} onClick={this.handleTermsClick}/>
-          <Button label='Get Assitance' onClick={this.handleFormSubmit} disabled={!this.state.formValid}/>
+          <TextArea
+            placeholder='Description'
+            id='description'
+            description={this.state.description}
+            onChange={this.handleInputChange}
+            style={style}
+          />
+          <Checkbox
+            placeholder={terms}
+            onClick={this.handleTermsClick}
+          />
+          <Button
+            id='Get Assistance'
+            onClick={this.handleFormSubmit}
+            disabled={!this.state.formValid}
+          />
         </div>
         <div style={{marginTop: '10vh'}}>
-          <Message hidden={!this.state.hidden} message={this.state.message} handleReturn={this.handleBackButton}/>
+          <Message
+            hidden={!this.state.hidden}
+            message={this.state.message}
+            handleReturn={this.handleBackButton}
+          />
         </div>
       </div>
     )

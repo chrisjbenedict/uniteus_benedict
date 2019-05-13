@@ -6,7 +6,7 @@ const Checkbox = ({ placeholder, onClick }) => {
       <div className="input-group-prepend">
         <div className="input-group-text">
           <p>
-            <input onClick={onClick} type="checkbox" aria-label="Checkbox for following text input" style={{marginRight: '2vw'}}/>
+            <input id='terms' onClick={onClick} type="checkbox" aria-label="Checkbox for following text input" style={{marginRight: '1vw'}}/>
              {placeholder}
           </p>
         </div>

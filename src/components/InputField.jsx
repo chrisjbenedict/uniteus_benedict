@@ -1,6 +1,6 @@
 import React from 'react'
 
-const InputField = ({ placeholder, onChange, id, style, input }) => {
+const InputField = ({ placeholder, onChange, id, style, input, hidden }) => {
   return(
     <div onChange={onChange} className="input-group mb-3" style={style}>
       <input
@@ -11,6 +11,7 @@ const InputField = ({ placeholder, onChange, id, style, input }) => {
         placeholder={!input ? placeholder : input}
         id={id}
       />
+      <p hidden={hidden} style={{textAlign: 'right', color: 'red'}}>required</p>
     </div>
   )
 }

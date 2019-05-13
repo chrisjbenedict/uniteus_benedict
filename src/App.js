@@ -14,3 +14,9 @@ class App extends Component {
 }
 
 export default App;
+
+
+// Things to do:
+  // Write more tests
+  // Write ReadMe
+  //
